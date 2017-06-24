@@ -42,7 +42,7 @@ namespace Textate
 
             return new Input
             {
-                User = formValues["From"].Replace("%2B", "").Trim(),
+                User = "plus" + formValues["From"].Replace("%2B", "").Trim(),
                 Command = formValues["Body"].Trim(),
             };
         }
