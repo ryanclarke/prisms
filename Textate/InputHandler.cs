@@ -9,10 +9,16 @@ namespace Textate
 {
     public class InputHandler
     {
-        public static Binder Binder => SmsTrigger.Binder;
-        public static TraceWriter Log => SmsTrigger.Log;
+        public static Binder Binder { get; private set; }
+        public static TraceWriter Log { get; private set; }
 
         private TableConnection tableConnection;
+
+        public InputHandler(Binder binder, TraceWriter log)
+        {
+            Binder = binder;
+            Log = log;
+        }
 
         public async Task<string> HandleAsync(Input input)
         {

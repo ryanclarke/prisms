@@ -12,19 +12,13 @@ namespace Textate
 {
     public static partial class SmsTrigger
     {
-        public static Binder Binder { get; set; }
-        public static TraceWriter Log { get; set; }
-
         [FunctionName("SmsTrigger")]
         public static async Task<HttpResponseMessage> Run(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]HttpRequestMessage req,
             TraceWriter log,
             Binder binder)
         {
-            Log = log;
-            Binder = binder;
-
-            var inputHandler = new InputHandler();
+            var inputHandler = new InputHandler(binder, log);
 
             var input = await ParseInput(req).ConfigureAwait(false);
             var responseContent = await inputHandler.HandleAsync(input).ConfigureAwait(false);
@@ -34,7 +28,7 @@ namespace Textate
         public static async Task<Input> ParseInput(HttpRequestMessage request)
         {
             var data = await request.Content.ReadAsStringAsync().ConfigureAwait(false);
-            Log.Verbose(data, "Request.Content");
+            InputHandler.Log.Verbose(data, "Request.Content");
             var formValues = data.Split('&')
                 .Select(value => value.Split('='))
                 .ToDictionary(pair => Uri.UnescapeDataString(pair[0]).Replace("+", " "),
