@@ -18,6 +18,7 @@ namespace Textate
 
     public class PrimaryCommand {
         private Regex matcher;
+        private string[] list;
         private string description;
         private CommandType commandType;
 
@@ -27,7 +28,8 @@ namespace Textate
 
         public PrimaryCommand(string shortcut, string name, string description, CommandType commandType)
         {
-            matcher = new Regex($"^(?<action>{shortcut}|{name})(?<rest>.*)$", RegexOptions.IgnoreCase);
+            list = new string[] { shortcut, name };
+            matcher = new Regex($"^({shortcut}|{name})(?<rest> .*)*$", RegexOptions.IgnoreCase);
             this.description = description;
             this.commandType = commandType;
             Name = name;
@@ -38,12 +40,14 @@ namespace Textate
         {
         }
 
-        public bool IsMatch(string input) => matcher.IsMatch(input);
+        public bool IsMatch(string input) => matcher.IsMatch(input.Trim());
 
         public string Unparsed(string input) =>
-            IsMatch(input)
-            ? matcher.Match(input).Groups["rest"].Value.Trim()
-            : null;
+            IsMatch(input.Trim())
+            ? matcher.Match(input.Trim()).Groups["rest"].Value.Trim()
+            : string.IsNullOrWhiteSpace(input)
+                ? string.Empty
+                : null;
     }
 
     public static class CommandParser
@@ -51,7 +55,7 @@ namespace Textate
         public static List<PrimaryCommand> GetDateCommands =>
             new List<PrimaryCommand>
             {
-                new PrimaryCommand("$", "add", "Add record for today", CommandType.Final),
+                new PrimaryCommand("a", "add", "Add record for today", CommandType.Final),
                 new PrimaryCommand("x", "remove", "Remove record for today", CommandType.Final)
             };
 
@@ -70,7 +74,8 @@ namespace Textate
                 new CommandTableEntity("m", "movie", "Movie to watch", TableEntityType.Date),
             };
 
-        public static List<PrimaryCommand> GetBuiltinCommands => new List<PrimaryCommand>
+        public static List<PrimaryCommand> GetBuiltinCommands =>
+            new List<PrimaryCommand>
             {
                 new PrimaryCommand("xc", "command", "Manage custom user commands", CommandType.Command),
                 new PrimaryCommand("xs", "settings", "Adjust app settings", CommandType.Settings),
@@ -99,7 +104,14 @@ namespace Textate
                 var i = commands.FindIndex(x => x.IsMatch(unparsed));
                 if (i == -1)
                 {
-                    sequence.Add(HelpCommand.Name);
+                    if (unparsed == string.Empty)
+                    {
+                        sequence.Add(commands[0].Name);
+                    }
+                    else
+                    {
+                        sequence.Add(HelpCommand.Name);
+                    }
                     break;
                 }
                 else
