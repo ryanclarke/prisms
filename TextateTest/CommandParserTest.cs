@@ -1,43 +1,54 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using NUnit.Framework;
 using Textate;
 
 namespace TextateTest
 {
-    [TestClass]
+    [TestFixture]
     public class CommandParserTest
     {
-        [TestMethod]
+        [Test]
         public void InvalidCommandShouldReturnHelp()
         {
             Scenario("invalid", "help");
         }
 
-        [TestMethod]
+        [Test]
         public void CustomUserCommandShortcutShouldMatch()
         {
             Scenario("b", "bike:add");
         }
 
-        [TestMethod]
+        [Test]
         public void CustomUserCommandNameShouldMatch()
         {
             Scenario("bike", "bike:add");
         }
 
-        [TestMethod]
+        [Test]
         public void CustomUserCommandSubcommandShortcutShouldMatch()
         {
             Scenario("bike x", "bike:remove");
         }
 
-        [TestMethod]
+        [Test]
+        public void CustomUserCommandShortcutAndSubcommandShortcutShouldMatch()
+        {
+            Scenario("b x", "bike:remove");
+        }
+
+        [Test]
         public void CustomUserCommandSubcommandNameShouldMatch()
         {
             Scenario("bike add", "bike:add");
         }
 
-        [TestMethod]
+        [Test]
+        public void CustomUserShortcutAndSubcommandNameShouldMatch()
+        {
+            Scenario("b add", "bike:add");
+        }
+
+        [Test]
         public void CustomUserCommandWithInvalidSubcommandShouldReturnHelp()
         {
             Scenario("b invalid", "bike:help");
