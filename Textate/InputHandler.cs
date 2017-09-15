@@ -28,9 +28,9 @@ namespace Textate
             {
                 PartitionKey = input.Command,
                 RowKey = DateTime.Now.ToString("s")
-            }).ConfigureAwait(false);
+            });
 
-            var outputTable = await tableConnection.GetPartition<DateTableEntity>(input.Command).ConfigureAwait(false);
+            var outputTable = await tableConnection.GetPartition<DateTableEntity>(input.Command);
             var yesterdayDateString = DateTime.Now.AddMinutes(-2).ToString("s");
             var count = outputTable.Where(r => r.RowKey.CompareTo(yesterdayDateString) >= 0).ToList().Count;
 

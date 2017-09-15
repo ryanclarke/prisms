@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Textate.Storage;
@@ -16,113 +17,148 @@ namespace Textate
         String,
     }
 
+    public enum PayloadType
+    {
+        None,
+        Date,
+        String,
+        Index,
+    }
+
     public class PrimaryCommand {
-        private Regex matcher;
-        private string[] list;
-        private string description;
         private CommandType commandType;
 
-        public List<PrimaryCommand> Subcommands => CommandParser.CommandTypeDictionary[commandType];
+        public string Name { get; }
 
-        public string Name { get; internal set; }
-
-        public PrimaryCommand(string shortcut, string name, string description, CommandType commandType)
+        public PrimaryCommand(string name, CommandType commandType)
         {
-            list = new string[] { shortcut, name };
-            matcher = new Regex($"^({shortcut}|{name})(?<rest> .*)*$", RegexOptions.IgnoreCase);
-            this.description = description;
             this.commandType = commandType;
             Name = name;
         }
 
         public PrimaryCommand(CommandTableEntity commandTableEntity) :
-            this(commandTableEntity.Shortcut, commandTableEntity.Name, commandTableEntity.Description, (CommandType)Enum.Parse(typeof(CommandType), commandTableEntity.TableEntityType.ToString()))
+            this(commandTableEntity.Name, (CommandType)Enum.Parse(typeof(CommandType), commandTableEntity.TableEntityType.ToString()))
         {
         }
 
-        public bool IsMatch(string input) => matcher.IsMatch(input.Trim());
+        public bool IsMatch(string token) =>
+            string.Equals(token, Name, StringComparison.CurrentCultureIgnoreCase);
 
-        public string Unparsed(string input) =>
-            IsMatch(input.Trim())
-            ? matcher.Match(input.Trim()).Groups["rest"].Value.Trim()
-            : string.IsNullOrWhiteSpace(input)
-                ? string.Empty
-                : null;
+        public Subcommand Subcommand(string token) =>
+            CommandParser.SubcommandsDictionary[commandType].Find(x => x.IsMatch(token));
+    }
+
+    public class Subcommand
+    {
+        private Func<Subcommand, string> run;
+
+        public string Name;
+
+        public PayloadType PayloadType { get; }
+
+        public Subcommand(string name, Func<Subcommand, string> run, PayloadType payloadType = PayloadType.None)
+        {
+            Name = name;
+            this.run = run;
+            PayloadType = payloadType;
+        }
+
+        public bool IsMatch(string token) =>
+            string.Equals(token, Name, StringComparison.CurrentCultureIgnoreCase);
     }
 
     public static class CommandParser
     {
-        public static List<PrimaryCommand> GetDateCommands =>
+        public static Dictionary<CommandType, List<Subcommand>> SubcommandsDictionary =>
+            new Dictionary<CommandType, List<Subcommand>>
+            {
+                { CommandType.Date, DateSubcommands },
+                { CommandType.String, StringSubcommands },
+            };
+
+        public static List<Subcommand> DateSubcommands =>
+            new List<Subcommand>
+            {
+                new Subcommand("add", x => x.Name, PayloadType.Date),
+                new Subcommand("delete", x => x.Name),
+                new Subcommand("view", x => x.Name)
+            };
+
+        public static List<Subcommand> StringSubcommands =>
+            new List<Subcommand>
+            {
+                new Subcommand("add", x => x.Name, PayloadType.String),
+                new Subcommand("delete", x => x.Name),
+                new Subcommand("view", x => x.Name)
+            };
+
+        public static List<PrimaryCommand> UserCommands =>
             new List<PrimaryCommand>
             {
-                new PrimaryCommand("a", "add", "Add record for today", CommandType.Final),
-                new PrimaryCommand("x", "remove", "Remove record for today", CommandType.Final)
+                new PrimaryCommand(new CommandTableEntity("bike", TableEntityType.Date)),
+                new PrimaryCommand(new CommandTableEntity("bible", TableEntityType.Date)),
+                new PrimaryCommand(new CommandTableEntity("movie", TableEntityType.String)),
             };
 
-        public static Dictionary<CommandType, List<PrimaryCommand>> CommandTypeDictionary =>
-            new Dictionary<CommandType, List<PrimaryCommand>>
-            {
-                [CommandType.Final] = new List<PrimaryCommand>(),
-                [CommandType.Date] = GetDateCommands
-            };
-
-        public static List<CommandTableEntity> GetUserCommands =>
-            new List<CommandTableEntity>
-            {
-                new CommandTableEntity("b", "bike", "Commuted to work by bike", TableEntityType.Date),
-                new CommandTableEntity("s", "scripture", "Read the Bible", TableEntityType.Date),
-                new CommandTableEntity("m", "movie", "Movie to watch", TableEntityType.Date),
-            };
-
-        public static List<PrimaryCommand> GetBuiltinCommands =>
+        public static List<PrimaryCommand> BuiltinCommands =>
             new List<PrimaryCommand>
             {
-                new PrimaryCommand("xc", "command", "Manage custom user commands", CommandType.Command),
-                new PrimaryCommand("xs", "settings", "Adjust app settings", CommandType.Settings),
+                new PrimaryCommand("command", CommandType.Command),
+                new PrimaryCommand("settings", CommandType.Settings),
                 HelpCommand,
             };
 
-        public static PrimaryCommand HelpCommand = new PrimaryCommand("xh", "help", "Get help", CommandType.Help);
+        public static PrimaryCommand HelpCommand = new PrimaryCommand("help", CommandType.Help);
 
-        public static List<PrimaryCommand> GetAllCommands
+        public static List<PrimaryCommand> AllCommands
         {
             get
             {
-                var l = GetBuiltinCommands;
-                l.AddRange(GetUserCommands.Select(x => new PrimaryCommand(x)));
+                var l = BuiltinCommands;
+                l.AddRange(UserCommands);
                 return l;
             }
         }
 
-        public static List<string> Parse(string input, List<PrimaryCommand> commands = null)
+        public static ExecutionPlan Parse(string input)
         {
-            var unparsed = input;
-            commands = commands ?? GetAllCommands;
-            var sequence = new List<string>();
-            while (unparsed != null && commands.Any())
-            {
-                var i = commands.FindIndex(x => x.IsMatch(unparsed));
-                if (i == -1)
+            var tokens = Regex.Split(input, @"[\s]+");
+            var commands = AllCommands;
+
+            var ep = new ExecutionPlan();
+
+            var c = commands.Find(x => x.IsMatch(tokens.First()));
+            ep.Partition = c.Name;
+            var s = c.Subcommand(tokens.Skip(1).First());
+            ep.Query = s.Name;
+            var rest = string.Join(" ", tokens.Skip(2));
+            if (rest != string.Empty) {
+                switch (s.PayloadType)
                 {
-                    if (unparsed == string.Empty)
-                    {
-                        sequence.Add(commands[0].Name);
-                    }
-                    else
-                    {
-                        sequence.Add(HelpCommand.Name);
-                    }
-                    break;
-                }
-                else
-                {
-                    sequence.Add(commands[i].Name);
-                    unparsed = commands[i].Unparsed(input);
-                    commands = commands[i].Subcommands;
+                    case PayloadType.Date:
+                        var d = rest + "/" + DateTime.Today.Year.ToString();
+                        var p = DateTime.ParseExact(d, "M/d/yyyy", CultureInfo.CurrentCulture);
+                        ep.Payload = p.ToString("yyyy-MM-dd");
+                        break;
+                    case PayloadType.String:
+                        ep.Payload = rest;
+                        break;
                 }
             }
 
-            return sequence;
+            return ep;
+        }
+    }
+
+    public class ExecutionPlan
+    {
+        public string Partition { get; set; }
+        public string Query { get; set; }
+        public string Payload { get; set; }
+
+        public string Stringify()
+        {
+            return string.Join(":", Partition, Query, Payload).TrimEnd(':');
         }
     }
 }
