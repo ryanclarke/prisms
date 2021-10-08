@@ -15,31 +15,24 @@ namespace Prisms.Client.Terminal
 
     public class Client
     {
-        private readonly IStorage _storage;
         private readonly App _app;
+        private readonly UserMessage _message;
 
         public Client()
         {
-            _storage = new FlatStorage();
-            _app = App.Create(_storage);
+            _app = App.Create(new FlatStorage("./../../../db"));
+            _message = new UserMessage(Environment.UserName, DateTime.MinValue, "");
         }
 
-        public void Process(string arg)
+        public void Process(string input)
         {
-            do
+            var message = _message with
             {
-                var content = arg ?? Console.ReadLine();
-                if (content is not null)
-                {
-                    var message = new TextMessage
-                    {
-                        PhoneNumber = "+12345678901",
-                        Content = content
-                    };
-                    var response = _app.Process(message);
-                    Console.WriteLine(response.ToString());
-                }
-            } while (arg is null);
+                TimeStamp = DateTime.Now,
+                Message = input ?? Console.ReadLine() ?? ""
+            };
+            var result = _app.Process(message);
+            Console.WriteLine(result.ToString());
         }
     }
 }

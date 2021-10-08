@@ -3,7 +3,7 @@
 namespace Prisms.Core
 {
     public interface IApp {
-        Response Process(TextMessage request);
+        Result Process(UserMessage request);
     }
 
     public class App : IApp
@@ -18,8 +18,10 @@ namespace Prisms.Core
             return new App(storage);
         }
 
-        public Response Process(TextMessage request) {
-            return Response.Success(request.Content);
+        public Result Process(UserMessage request) {
+            var shard = MessageParser.Parse(request);
+            _storage.Write(shard);
+            return new Result.Success();
         }
     }
 }
