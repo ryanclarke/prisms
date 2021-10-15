@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Prisms.Core;
 
 namespace Prisms.Client.Terminal
@@ -9,7 +10,7 @@ namespace Prisms.Client.Terminal
 
         static void Main(string[] args)
         {
-            new Client().Process(args.FirstOrDefault());
+            _ = new Client().ProcessAsync(args.FirstOrDefault());
         }
     }
 
@@ -24,14 +25,14 @@ namespace Prisms.Client.Terminal
             _message = new UserMessage(Environment.UserName, DateTime.MinValue, "");
         }
 
-        public void Process(string input)
+        public async Task ProcessAsync(string input)
         {
             var message = _message with
             {
                 TimeStamp = DateTime.Now,
                 Message = input ?? Console.ReadLine() ?? ""
             };
-            var result = _app.Process(message);
+            var result = await _app.ProcessAsync(message);
             Console.WriteLine(result.ToString());
         }
     }

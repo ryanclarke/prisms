@@ -1,14 +1,20 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace Prisms.Core
 {
     public interface IApp {
-        Result Process(UserMessage request);
+        Task<Result> ProcessAsync(UserMessage request);
     }
 
     public class App : IApp
     {
         private readonly IStorage _storage;
+
+        public static App Create()
+        {
+            throw new NotImplementedException();
+        }
 
         private App(IStorage storage) {
             _storage = storage;
@@ -18,9 +24,10 @@ namespace Prisms.Core
             return new App(storage);
         }
 
-        public Result Process(UserMessage request) {
-            var shard = MessageParser.Parse(request);
-            _storage.Write(shard);
+        public async Task<Result> ProcessAsync(UserMessage request) {
+            var userCommands = await _storage.ReadUserCommandsAsync(request.UserId);
+            var shard = MessageParser.Parse(userCommands, request);
+            await _storage.WriteAsync(shard);
             return new Result.Success();
         }
     }
