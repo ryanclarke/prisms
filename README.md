@@ -1,4 +1,3 @@
-# Textate
+# Prisms
 
 Remembering things over SMS.
-
