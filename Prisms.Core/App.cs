@@ -9,25 +9,25 @@ namespace Prisms.Core
 
     public class App : IApp
     {
-        private readonly IStorage _storage;
+        private readonly Storage _storage;
 
         public static App Create()
         {
             throw new NotImplementedException();
         }
 
-        private App(IStorage storage) {
-            _storage = storage;
+        private App(IDatabase database) {
+            _storage = new Storage(database);
         }
 
-        public static App Create(IStorage storage) {
+        public static App Create(IDatabase storage) {
             return new App(storage);
         }
 
         public async Task<Result> ProcessAsync(UserMessage request) {
-            var userCommands = await _storage.ReadUserCommandsAsync(request.UserId);
+            var userCommands = await _storage.GetUserCommandsAsync(request.UserId);
             var shard = MessageParser.Parse(userCommands, request);
-            await _storage.WriteAsync(shard);
+            await _storage.SaveAsync(shard);
             return new Result.Success();
         }
     }

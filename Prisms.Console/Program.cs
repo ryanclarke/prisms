@@ -21,7 +21,7 @@ namespace Prisms.Client.Terminal
 
         public Client()
         {
-            _app = App.Create(new FlatStorage("./../../../db"));
+            _app = App.Create(new FlatFileDatabase("./../../../db"));
             _message = new UserMessage(Environment.UserName, DateTime.MinValue, "");
         }
 
