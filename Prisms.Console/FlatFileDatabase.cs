@@ -22,7 +22,7 @@ namespace Prisms.Client.Terminal
             if (Directory.Exists(path))
             {
                 var filePaths = Directory.GetFiles(path);
-                var shards = filePaths.Select(async path => new Shard(userId, path.Ξ(Path.GetFileName).Ξ(DateTime.Parse), dataType, await File.ReadAllTextAsync(path)));
+                var shards = filePaths.Select(async path => new Shard(userId, path.λ(Path.GetFileName).λ(DateTime.Parse), dataType, await File.ReadAllTextAsync(path)));
                 return Task.WhenAll(shards);
             }
             return Task.FromResult(Array.Empty<Shard>());
