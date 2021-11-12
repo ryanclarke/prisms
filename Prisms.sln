@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31606.5
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Prisms.Client.Terminal", "Prisms.Console\Prisms.Client.Terminal.csproj", "{925272B8-D8BC-4470-9848-EE380BB427B3}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Prisms.Client.Terminal", "Prisms.Client.Terminal\Prisms.Client.Terminal.csproj", "{925272B8-D8BC-4470-9848-EE380BB427B3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Prisms.Client.Terminal.Test", "Prisms.Console.Test\Prisms.Client.Terminal.Test.csproj", "{5FF8BF28-3D2D-41B1-BE0F-363D54BC495C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Prisms.Client.Terminal.Test", "Prisms.Client.Terminal.Test\Prisms.Client.Terminal.Test.csproj", "{5FF8BF28-3D2D-41B1-BE0F-363D54BC495C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Prisms.Core", "Prisms.Core\Prisms.Core.csproj", "{9A9A2B2F-A381-4F75-B197-6584D713EEC9}"
 EndProject

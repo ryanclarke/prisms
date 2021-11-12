@@ -1,34 +1,34 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿namespace Prisms.Core;
 
-namespace Prisms.Core
+public interface IApp
 {
-    public interface IApp {
-        Task<Result> ProcessAsync(UserMessage request);
+    Task<Result> ProcessAsync(UserMessage request);
+}
+
+public class App : IApp
+{
+    private readonly Storage _storage;
+
+    public static App Create()
+    {
+        throw new NotImplementedException();
     }
 
-    public class App : IApp
+    private App(IDatabase database)
     {
-        private readonly Storage _storage;
+        _storage = new Storage(database);
+    }
 
-        public static App Create()
-        {
-            throw new NotImplementedException();
-        }
+    public static App Create(IDatabase storage)
+    {
+        return new App(storage);
+    }
 
-        private App(IDatabase database) {
-            _storage = new Storage(database);
-        }
-
-        public static App Create(IDatabase storage) {
-            return new App(storage);
-        }
-
-        public async Task<Result> ProcessAsync(UserMessage request) {
-            var userCommands = await _storage.GetUserCommandsAsync(request.UserId);
-            var shard = MessageParser.Parse(userCommands, request);
-            await _storage.SaveAsync(shard);
-            return new Result.Success();
-        }
+    public async Task<Result> ProcessAsync(UserMessage request)
+    {
+        var userCommands = await _storage.GetUserCommandsAsync(request.UserId);
+        var shard = MessageParser.Parse(userCommands, request);
+        await _storage.SaveAsync(shard);
+        return new Result.Success();
     }
 }

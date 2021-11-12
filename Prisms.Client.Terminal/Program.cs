@@ -1,0 +1,1 @@
+﻿await new Prisms.Client.Terminal.Client().ProcessAsync(args.Length == 0 ? null : string.Join(' ', args));
