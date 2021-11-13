@@ -26,6 +26,11 @@ public class App : IApp
 
     public async Task<Result> ProcessAsync(UserMessage request)
     {
+        if (string.IsNullOrWhiteSpace(request.Message))
+        {
+            return new Result.Error(new ArgumentException("Cannot be empty or whitespace", nameof(request.Message)));
+        }
+        
         var userCommands = await _storage.GetUserCommandsAsync(request.UserId);
         var shard = MessageParser.Parse(userCommands, request);
         await _storage.SaveAsync(shard);

@@ -13,14 +13,23 @@ public class Client
         _message = new UserMessage(Environment.UserName, DateTime.MinValue, "");
     }
 
-    public async Task ProcessAsync(string? input)
+    public async Task RunAsync()
+    {
+        "> ".Write();
+        while (Console.ReadLine() is string input)
+        {
+            await ProcessAsync(input);
+            "\n> ".Write();
+        }
+    }
+
+    public async Task ProcessAsync(string input)
     {
         var message = _message with
         {
             TimeStamp = DateTime.Now,
-            Message = input ?? Console.ReadLine() ?? ""
+            Message = input
         };
-        var result = await _app.ProcessAsync(message);
-        Console.WriteLine(result.ToString());
+        (await _app.ProcessAsync(message)).WriteLine();
     }
 }
