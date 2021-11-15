@@ -3,7 +3,7 @@
 public enum CommandType
 {
     Note,
-    Habit,
+    Date,
     List
 }
 

@@ -1,9 +1,3 @@
-using FluentAssertions;
-using Moq;
-using System;
-using System.Threading.Tasks;
-using Xunit;
-
 namespace Prisms.Core.Test;
 
 public class AppTests
@@ -23,7 +17,7 @@ public class AppTests
     [Fact]
     public async Task WritesMessageToStorageAsync()
     {
-        var result = await _app.ProcessAsync(_userMessage);
+        var result = await _app.ProcessAsync(_userMessage with { Message = "message" });
 
         result.Should().BeOfType<Result.Success>();
         _mockDatabase.Verify(s => s.CreateOrUpdateAsync(It.IsAny<Shard>()));

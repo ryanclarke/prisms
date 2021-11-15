@@ -1,6 +1,4 @@
-﻿using Prisms.Core;
-
-namespace Prisms.Client.Terminal;
+﻿namespace Prisms.Client.Terminal;
 
 public class FlatFileDatabase : IDatabase
 {

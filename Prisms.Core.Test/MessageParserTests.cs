@@ -1,8 +1,3 @@
-using FluentAssertions;
-using System;
-using System.Collections.Generic;
-using Xunit;
-
 namespace Prisms.Core.Test;
 
 public class MessageParserTests
@@ -37,6 +32,47 @@ public class MessageParserTests
         var expectedShard = _shard with
         {
             DataType = "thing",
+            Data = "hello"
+        };
+
+        MessageParser.Parse(userCommands, userMessage).Should().Be(expectedShard, message);
+    }
+
+    [Theory]
+    [InlineData("movie")]
+    [InlineData("movie.")]
+    [InlineData("movie. ")]
+    [InlineData("m")]
+    [InlineData("m.")]
+    [InlineData("m. ")]
+    [InlineData("MoVie")]
+    [InlineData("M")]
+    public void ParsesListTypeMessagesWithoutContent(string message)
+    {
+        var userMessage = _userMessage with { Message = message };
+        var userCommands = new List<Command> { new Command(CommandType.List, "movie", "m") };
+        var expectedShard = _shard with
+        {
+            DataType = "movie",
+            Data = ""
+        };
+
+        MessageParser.Parse(userCommands, userMessage).Should().Be(expectedShard, message);
+    }
+
+    [Theory]
+    [InlineData("movie.hello")]
+    [InlineData("movie. hello")]
+    [InlineData("m. hello")]
+    [InlineData("MoVie. hello")]
+    [InlineData("M. hello")]
+    public void ParsesListTypeMessagesWithCotent(string message)
+    {
+        var userMessage = _userMessage with { Message = message };
+        var userCommands = new List<Command> { new Command(CommandType.List, "movie", "m") };
+        var expectedShard = _shard with
+        {
+            DataType = "movie",
             Data = "hello"
         };
 
