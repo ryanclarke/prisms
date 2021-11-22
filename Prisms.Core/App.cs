@@ -32,8 +32,12 @@ public class App : IApp
         }
         
         var userCommands = await _storage.GetUserCommandsAsync(request.UserId);
-        var shard = MessageParser.Parse(userCommands, request);
+        var (query, shard) = MessageParser.Parse(userCommands, request);
         await _storage.SaveAsync(shard);
-        return new Result.Success();
+        return (await _storage.FetchAsync(query))?.LastOrDefault()?.ToString() switch
+        {
+            string s => new Result.Response(s),
+            null => new Result.Success()
+        };
     }
 }

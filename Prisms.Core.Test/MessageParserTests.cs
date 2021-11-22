@@ -6,18 +6,21 @@ public class MessageParserTests
     private static readonly DateTime _now = DateTime.Now;
     private readonly UserMessage _userMessage = new(_userId, _now, "");
     private readonly Shard _shard = new(_userId, _now, "", "");
+    private readonly Query _query = new(_userId, new Command(CommandType.Note, "note", "n"));
 
     [Fact]
     public void ParsesDefaultMessageWithNoUserCommands()
     {
         var userMessage = _userMessage with { Message = "hello" };
-        var expectedShard = _shard with
-        {
-            DataType = "note",
-            Data = "hello"
-        };
+        var expectedPair = (
+            _query,
+            _shard with
+            {
+                DataType = "note",
+                Data = "hello"
+            });
 
-        MessageParser.Parse(new List<Command>(), userMessage).Should().Be(expectedShard);
+        MessageParser.Parse(new List<Command>(), userMessage).Should().Be(expectedPair);
     }
 
     [Theory]
@@ -28,14 +31,17 @@ public class MessageParserTests
     public void ParsesMessagesWithCommandSentence(string message)
     {
         var userMessage = _userMessage with { Message = message };
-        var userCommands = new List<Command> { new Command(CommandType.Note, "thing", "t") };
-        var expectedShard = _shard with
-        {
-            DataType = "thing",
-            Data = "hello"
-        };
+        var command = new Command(CommandType.Note, "thing", "t");
+        var userCommands = new List<Command> { command };
+        var expectedPair = (
+            _query with { Command = command },
+            _shard with
+            {
+                DataType = "thing",
+                Data = "hello"
+            });
 
-        MessageParser.Parse(userCommands, userMessage).Should().Be(expectedShard, message);
+        MessageParser.Parse(userCommands, userMessage).Should().Be(expectedPair, message);
     }
 
     [Theory]
@@ -50,14 +56,17 @@ public class MessageParserTests
     public void ParsesListTypeMessagesWithoutContent(string message)
     {
         var userMessage = _userMessage with { Message = message };
-        var userCommands = new List<Command> { new Command(CommandType.List, "movie", "m") };
-        var expectedShard = _shard with
-        {
-            DataType = "movie",
-            Data = ""
-        };
+        var command = new Command(CommandType.Note, "movie", "m");
+        var userCommands = new List<Command> { command };
+        var expectedPair = (
+            _query with { Command = command },
+            _shard with
+            {
+                DataType = "movie",
+                Data = ""
+            });
 
-        MessageParser.Parse(userCommands, userMessage).Should().Be(expectedShard, message);
+        MessageParser.Parse(userCommands, userMessage).Should().Be(expectedPair, message);
     }
 
     [Theory]
@@ -69,13 +78,16 @@ public class MessageParserTests
     public void ParsesListTypeMessagesWithCotent(string message)
     {
         var userMessage = _userMessage with { Message = message };
-        var userCommands = new List<Command> { new Command(CommandType.List, "movie", "m") };
-        var expectedShard = _shard with
-        {
-            DataType = "movie",
-            Data = "hello"
-        };
+        var command = new Command(CommandType.Note, "movie", "m");
+        var userCommands = new List<Command> { command };
+        var expectedPair = (
+            _query with { Command = command },
+            _shard with
+            {
+                DataType = "movie",
+                Data = "hello"
+            });
 
-        MessageParser.Parse(userCommands, userMessage).Should().Be(expectedShard, message);
+        MessageParser.Parse(userCommands, userMessage).Should().Be(expectedPair, message);
     }
 }

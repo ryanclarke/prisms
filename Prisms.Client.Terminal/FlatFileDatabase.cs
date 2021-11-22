@@ -14,8 +14,7 @@ public class FlatFileDatabase : IDatabase
         var path = DataTypePath(userId, dataType);
         if (Directory.Exists(path))
         {
-            var filePaths = Directory.GetFiles(path);
-            var shards = filePaths.Select(async path => new Shard(userId, path.λ(Path.GetFileName).λ(DateTime.Parse), dataType, await File.ReadAllTextAsync(path)));
+            var shards = Directory.GetFiles(path).Select(async path => new Shard(userId, path.λ(Path.GetFileName)!.Replace(';', ':').Replace(',', '.').λ(DateTime.Parse), dataType, await File.ReadAllTextAsync(path)));
             return Task.WhenAll(shards);
         }
         return Task.FromResult(Array.Empty<Shard>());
@@ -24,7 +23,7 @@ public class FlatFileDatabase : IDatabase
     public async Task CreateOrUpdateAsync(Shard shard)
     {
         var path = FilePath(shard);
-        Directory.CreateDirectory(Path.GetDirectoryName(path));
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         await File.WriteAllTextAsync(path, shard.Data);
     }
 

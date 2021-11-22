@@ -10,7 +10,7 @@ public class AppTests
     public AppTests()
     {
         _mockDatabase = new Mock<IDatabase>();
-        _mockDatabase.Setup(it => it.GetAllOfDataTypeAsync(_userId, Storage.Constants.Config.Command)).ReturnsAsync(Array.Empty<Shard>());
+        _mockDatabase.Setup(it => it.GetAllOfDataTypeAsync(_userId, It.IsAny<string>())).ReturnsAsync(Array.Empty<Shard>());
         _app = App.Create(_mockDatabase.Object);
     }
 
@@ -19,7 +19,8 @@ public class AppTests
     {
         var result = await _app.ProcessAsync(_userMessage with { Message = "message" });
 
-        result.Should().BeOfType<Result.Success>();
         _mockDatabase.Verify(s => s.CreateOrUpdateAsync(It.IsAny<Shard>()));
+        
+        result.Should().BeOfType<Result.Success>();
     }
 }

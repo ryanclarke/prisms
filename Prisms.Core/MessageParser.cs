@@ -4,7 +4,7 @@ public class MessageParser
 {
     private const StringSplitOptions RemoveEmptyAndTrimEntries = StringSplitOptions.RemoveEmptyEntries & StringSplitOptions.TrimEntries;
 
-    public static Shard Parse(IEnumerable<Command> userCommands, UserMessage request)
+    public static (Query, Shard) Parse(IEnumerable<Command> userCommands, UserMessage request)
     {
         var split = request.Message.Split('.', 2, RemoveEmptyAndTrimEntries);
 
@@ -15,14 +15,15 @@ public class MessageParser
 
         if (cmd is null || string.IsNullOrWhiteSpace(directive))
         {
-            return new Shard(request.UserId, request.TimeStamp, "note", request.Message);
+            return (new Query(request.UserId, Command.DefaultNote()), new Shard(request.UserId, request.TimeStamp, "note", request.Message));
         }
 
+        var query = new Query(request.UserId, cmd);
         return cmd.CommandType switch
         {
-            CommandType.Note => new Shard(request.UserId, request.TimeStamp, cmd.Name, rest),
-            CommandType.List => new Shard(request.UserId, request.TimeStamp, cmd.Name, rest),
-            CommandType.Date => new Shard(request.UserId, request.TimeStamp.Date, cmd.Name, rest),
+            CommandType.Note => (query, new Shard(request.UserId, request.TimeStamp, cmd.Name, rest)),
+            CommandType.List => (query, new Shard(request.UserId, request.TimeStamp, cmd.Name, rest)),
+            CommandType.Date => (query, new Shard(request.UserId, request.TimeStamp.Date, cmd.Name, rest)),
             _ => throw new NotImplementedException()
         };
     }

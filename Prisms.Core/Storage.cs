@@ -1,7 +1,4 @@
-﻿using System.Text.Json;
-using System.Text.Json.Serialization;
-
-namespace Prisms.Core;
+﻿namespace Prisms.Core;
 
 public class Storage
 {
@@ -26,9 +23,16 @@ public class Storage
     public async Task SaveAsync(Shard shard) => await _database.CreateOrUpdateAsync(shard);
 
     public async Task<IEnumerable<Command>> GetUserCommandsAsync(string userId) =>
-        (await _database.GetAllOfDataTypeAsync(userId, Constants.Config.Command)).Select(c => Deserialize<Command>(c.Data));
+        (await _database.GetAllOfDataTypeAsync(userId, Constants.Config.Command))
+            .Select(c => Deserialize<Command>(c.Data))
+            .OfType<Command>();
 
-    public T Deserialize<T>(string json) => JsonSerializer.Deserialize<T>(json, _jsonSerializerOptions);
+    public async Task<Shard[]> FetchAsync(Query query)
+    {
+        return await _database.GetAllOfDataTypeAsync(query.UserId, query.Command.Name);
+    }
+
+    public T? Deserialize<T>(string json) => JsonSerializer.Deserialize<T>(json, _jsonSerializerOptions);
 
     public string Serialize<T>(T obj) => JsonSerializer.Serialize(obj, _jsonSerializerOptions);
 }
