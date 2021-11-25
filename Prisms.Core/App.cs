@@ -34,10 +34,6 @@ public class App : IApp
         var userCommands = await _storage.GetUserCommandsAsync(request.UserId);
         var (query, shard) = MessageParser.Parse(userCommands, request);
         await _storage.SaveAsync(shard);
-        return (await _storage.FetchAsync(query))?.LastOrDefault()?.ToString() switch
-        {
-            string s => new Result.Response(s),
-            null => new Result.Success()
-        };
+        return ResponseFormatter.Format(query, await _storage.FetchAsync(query));
     }
 }
