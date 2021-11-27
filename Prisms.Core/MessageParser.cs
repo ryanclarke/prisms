@@ -15,10 +15,10 @@ public class MessageParser
 
         if (cmd is null || string.IsNullOrWhiteSpace(directive))
         {
-            return (new Query(request.UserId, Command.DefaultNote()), new Shard(request.UserId, request.TimeStamp, "note", request.Message));
+            return (new Query(request.UserId, Command.DefaultNote(), request.TimeStamp), new Shard(request.UserId, request.TimeStamp, "note", request.Message));
         }
 
-        var query = new Query(request.UserId, cmd);
+        var query = new Query(request.UserId, cmd, request.TimeStamp);
         return cmd.CommandType switch
         {
             CommandType.Note => (query, new Shard(request.UserId, request.TimeStamp, cmd.Name, rest)),

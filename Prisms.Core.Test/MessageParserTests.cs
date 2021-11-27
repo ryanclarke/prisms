@@ -6,7 +6,7 @@ public class MessageParserTests
     private static readonly DateTime _now = DateTime.Now;
     private readonly UserMessage _userMessage = new(_userId, _now, "");
     private readonly Shard _shard = new(_userId, _now, "", "");
-    private readonly Query _query = new(_userId, new Command(CommandType.Note, "note", "n"));
+    private readonly Query _query = new(_userId, new Command(CommandType.Note, "note", "n"), _now);
 
     [Fact]
     public void ParsesDefaultMessageWithNoUserCommands()

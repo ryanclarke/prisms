@@ -15,4 +15,4 @@ public record Command(CommandType CommandType, string Name, string ShortName)
 
 public record UserMessage(string UserId, DateTime TimeStamp, string Message);
 public record Shard(string UserId, DateTime TimeStamp, string DataType, string Data);
-public record Query(string UserId, Command Command);
+public record Query(string UserId, Command Command, DateTime ReferenceDate);
